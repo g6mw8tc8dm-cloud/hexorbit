@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>HEXORBIT 星核轮转 微信小游戏预览</title>
+<style>
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#ecf0f1;}
+#gameCanvas{display:block;width:100vw;height:100vh;}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+window.wx = {
+  getWindowInfo: function () {
+    return {
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      pixelRatio: window.devicePixelRatio || 1,
+      safeArea: { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth }
+    };
+  },
+  createCanvas: function () { return document.getElementById("gameCanvas"); },
+  getStorageSync: function (key) {
+    var raw = localStorage.getItem(key);
+    if (raw === null) { return ""; }
+    try { return JSON.parse(raw); } catch (e) { return raw; }
+  },
+  setStorageSync: function (key, value) { localStorage.setItem(key, JSON.stringify(value)); },
+  removeStorageSync: function (key) { localStorage.removeItem(key); },
+  onTouchStart: function (handler) {
+    document.addEventListener("touchstart", function (e) { handler(e); }, { passive: true });
+    document.addEventListener("mousedown", function (e) { handler(e); });
+  },
+  onHide: function (handler) { document.addEventListener("visibilitychange", function () { if (document.hidden) { handler(); } }); },
+  onShow: function (handler) { document.addEventListener("visibilitychange", function () { if (!document.hidden) { handler(); } }); },
+  showShareMenu: function () {},
+  onShareAppMessage: function () {},
+  shareAppMessage: function (options) { console.log("share", options); },
+  vibrateShort: function () {},
+  setKeepScreenOn: function () {},
+  setInnerAudioOption: function () {},
+  createInnerAudioContext: function () {
+    var audio = new Audio();
+    function resolve(src) { return src.indexOf("audio/") === 0 ? "../" + src : src; }
+    var api = {
+      src: "", loop: false, volume: 1, obeyMuteSwitch: true, paused: true,
+      play: function () {
+        audio.src = resolve(api.src);
+        audio.loop = api.loop;
+        audio.volume = api.volume;
+        api.paused = false;
+        var p = audio.play();
+        if (p && p.catch) { p.catch(function () { api.paused = true; }); }
+      },
+      pause: function () { api.paused = true; audio.pause(); },
+      stop: function () { api.paused = true; audio.pause(); audio.currentTime = 0; },
+      onError: function (cb) { audio.addEventListener("error", cb); },
+      destroy: function () { audio.pause(); audio.src = ""; }
+    };
+    return api;
+  },
+  createRewardedVideoAd: function () {
+    var closeHandler = null;
+    return {
+      load: function () { return Promise.resolve(); },
+      show: function () {
+        console.log("mock rewarded ad");
+        setTimeout(function () { if (closeHandler) { closeHandler({ isEnded: true }); } }, 400);
+        return Promise.resolve();
+      },
+      onClose: function (cb) { closeHandler = cb; },
+      onError: function () {},
+      destroy: function () {}
+    };
+  },
+  createBannerAd: function (options) {
+    var ad = {
+      style: (options && options.style) || {},
+      show: function () { console.log("mock banner show", ad.style); return Promise.resolve(); },
+      hide: function () { return Promise.resolve(); },
+      onResize: function (cb) { setTimeout(function () { cb({ width: ad.style.width, height: 96 }); }, 0); },
+      onError: function () {},
+      destroy: function () {}
+    };
+    return ad;
+  }
+};
+</script>
+<script src="preview.bundle.js"></script>
+</body>
+</html>
